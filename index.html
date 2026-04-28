@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>JhatsApp</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#25D366;--gd:#128C7E;--bg:#111B21;--sb:#202C33;--pb:#0D1418;
+  --hb:#202C33;--bm:#005C4B;--bt:#202C33;--t1:#E9EDEF;--t2:#8696A0;
+  --t3:#667781;--br:#2A3942;--ho:#2A3942;--f:'DM Sans',sans-serif;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t1);font-family:var(--f);font-size:15px;}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--br);border-radius:3px}
+.app{display:flex;height:100vh;width:100vw;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:360px;min-width:360px;display:flex;flex-direction:column;background:var(--sb);border-right:1px solid var(--br)}
+.s-head{padding:12px 16px;display:flex;align-items:center;gap:10px;background:var(--hb);border-bottom:1px solid var(--br)}
+.logo-icon{font-size:24px}
+.logo-name{font-size:17px;font-weight:700;color:var(--g)}
+.logo-sub{font-size:11px;color:var(--t3)}
+.s-search{display:flex;align-items:center;gap:8px;margin:8px 12px;background:var(--pb);border-radius:8px;padding:8px 12px}
+.s-search input{flex:1;background:none;border:none;outline:none;color:var(--t1);font-family:var(--f);font-size:14px}
+.s-search input::placeholder{color:var(--t3)}
+.s-list{flex:1;overflow-y:auto}
+.s-item{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;border-bottom:1px solid rgba(42,57,66,.4);transition:background .15s}
+.s-item:hover{background:var(--ho)}
+.s-item.active{background:var(--ho)}
+.av{width:46px;height:46px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.av-f{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;flex-shrink:0}
+.s-info{flex:1;min-width:0}
+.s-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+.s-name{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-date{font-size:11px;color:var(--t3);flex-shrink:0;margin-left:8px}
+.s-prev{font-size:13px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--pb)}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--t3)}
+.empty-icon{font-size:64px;opacity:.3}
+.empty h2{font-size:20px;font-weight:500;color:var(--t2)}
+.empty p{font-size:14px}
+
+/* CHAT */
+.c-head{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--hb);border-bottom:1px solid var(--br);flex-shrink:0}
+.c-name{font-size:16px;font-weight:600}
+.c-role{font-size:12px;color:var(--t2)}
+.c-msgs{flex:1;overflow-y:auto;padding:16px 60px;display:flex;flex-direction:column;gap:4px}
+.date-sep{text-align:center;margin:10px 0}
+.date-sep span{background:var(--sb);padding:4px 12px;border-radius:8px;font-size:12px;color:var(--t2)}
+.bubble{max-width:65%;padding:8px 12px;border-radius:8px;font-size:14px;line-height:1.5;word-break:break-word}
+.b-them{background:var(--bt);align-self:flex-start;border-bottom-left-radius:2px}
+.b-me{background:var(--bm);align-self:flex-end;border-bottom-right-radius:2px}
+.b-time{font-size:11px;color:var(--t3);text-align:right;margin-top:2px}
+.b-link{color:#53BDEB}
+
+@media(max-width:700px){
+  .sidebar{width:100%;min-width:100%;position:absolute;z-index:10;height:100%}
+  .sidebar.hidden{display:none}
+  .c-msgs{padding:16px 12px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="s-head">
+      <span class="logo-icon">💬</span>
+      <div>
+        <div class="logo-name">JhatsApp</div>
+        <div class="logo-sub">by Jmail</div>
+      </div>
+    </div>
+    <div class="s-search">
+      <span style="opacity:.5">🔍</span>
+      <input id="search" type="text" placeholder="Search conversations…" oninput="renderList()"/>
+    </div>
+    <div class="s-list" id="list"></div>
+  </aside>
+  <main class="main" id="main">
+    <div class="empty" id="empty">
+      <div class="empty-icon">💬</div>
+      <h2>JhatsApp</h2>
+      <p>Select a conversation to start reading</p>
+    </div>
+    <div id="chat" style="display:none;flex:1;display:none;flex-direction:column;overflow:hidden"></div>
+  </main>
+</div>
+<script>
+const COLORS=['#1a5276','#1e8449','#7b241c','#6c3483','#1a5276','#0e6655','#784212','#1f618d'];
+const color=n=>COLORS[n.charCodeAt(0)%COLORS.length];
+const initials=n=>n.replace(/Maybe:\s*/i,'').split(' ').filter((_,i)=>i<2).map(w=>w[0]).join('').toUpperCase();
+
+const contacts=[
+  {id:'steve-bannon',name:'Steve Bannon',role:'Former White House Chief Strategist',avatar:'https://jmail.world/_next/image?url=%2Fpeople-thumbnails%2Fsteve-bannon.png&w=128&q=75'},
+  {id:'larry-summers',name:'Larry Summers',role:'Former U.S. Secretary of the Treasury',avatar:'https://jmail.world/_next/image?url=%2Fpeople-thumbnails%2Flarry-summers.png&w=128&q=75'},
+  {id:'joi-ito',name:'Joi Ito',role:'Former MIT Media Lab Director',avatar:'https://jmail.world/_next/image?url=%2Fpeople-thumbnails%2Fjoi-ito.png&w=128&q=75'},
+  {id:'melanie-walker',name:'Melanie Walker',role:'Neuroscientist & World Bank Advisor',avatar:'https://jmail.world/_next/image?url=%2Fpeople-thumbnails%2Fmelanie-walker.png&w=128&q=75'},
+  {id:'anthony-scaramucci',name:'Anthony Scaramucci',role:'Former White House Comms Director',avatar:'https://jmail.world/_next/image?url=%2Fpeople-thumbnails%2Fanthony-scaramucci.png&w=128&q=75'},
+  {id:'miroslav-lajcak',name:'Miroslav Lajčák',role:'Slovak Diplomat & UN GA President',avatar:'https://jmail.world/_next/image?url=%2Fpeople-thumbnails%2Fmiroslav-lajcak.png&w=128&q=75'},
+  {id:'michael-wolff',name:'Michael Wolff',role:'Journalist & Author of Fire and Fury',avatar:'https://jmail.world/_next/image?url=%2Fpeople-thumbnails%2Fmichael-wolff.png&w=128&q=75'},
+  {id:'eva-dubin',name:'Eva Dubin',role:'Physician & Philanthropist',avatar:'https://jmail.world/_next/image?url=%2Fpeople-thumbnails%2Feva-dubin.png&w=128&q=75'},
+  {id:'terje-rod-larsen',name:'Terje Rød-Larsen',role:'Norwegian Diplomat & UN Envoy',avatar:'https://jmail.world/_next/image?url=%2Fpeople-thumbnails%2Fterje-rod-larsen.png&w=128&q=75'},
+  {id:'soon-yi-previn',name:'Soon-Yi Previn',role:'Adoptive wife of Woody Allen',avatar:'https://jmail.world/_next/image?url=%2Fpeople-thumbnails%2Fsoon-yi-previn.png&w=128&q=75'},
+  {id:'anil-ambani',name:'Anil Ambani',role:'Indian Businessman',avatar:'https://jmail.world/_next/image?url=%2Fpeople-thumbnails%2Fanil-ambani.png&w=128&q=75'},
+  {id:'stacey-plaskett',name:'Stacey Plaskett',role:'U.S. Virgin Islands Delegate to Congress',avatar:'https://jmail.world/_next/image?url=%2Fpeople-thumbnails%2Fstacey-plaskett.png&w=128&q=75'},
+  {id:'celina-dubin',name:'Celina Dubin',role:'Philanthropist',avatar:'https://jmail.world/_next/image?url=%2Fpeople-thumbnails%2Fcelina-dubin.png&w=128&q=75'},
+  {id:'andrzej-duda',name:'Duda Entourage',role:'Polish President\'s Entourage',avatar:'https://jmail.world/_next/image?url=%2Fpeople-thumbnails%2Fandrzej-duda.png&w=128&q=75'},
+  {id:'arda-beskardes',name:'Arda Beskardes',role:'Business Associate',avatar:null},
+];
+
+const convos={
+  'steve-bannon':{last:'07/06/19',preview:'You r not coming in?',msgs:[
+    {from:'them',text:'You r not coming in?',time:'4:37 PM',date:'Sat, Jul 6, 2019'},
+    {from:'them',text:'All canceled',time:'4:37 PM',date:'Sat, Jul 6, 2019'},
+    {from:'them',text:'Can we do late morning say 11. Am',time:'4:35 PM',date:'Sat, Jul 6, 2019'},
+    {from:'me',text:'Perfect',time:'3:59 AM',date:'Sat, Jul 6, 2019'},
+    {from:'me',text:'Yes',time:'3:59 AM',date:'Sat, Jul 6, 2019'},
+    {from:'me',text:'If we can arrange it can we film on the island?',time:'3:59 AM',date:'Sat, Jul 6, 2019'},
+    {from:'them',text:'U still going to see Watson on Monday?',time:'3:36 AM',date:'Sat, Jul 6, 2019'},
+    {from:'them',text:'Goofball. Had you told me earlier I would have adjusted my schedule.',time:'12:14 AM',date:'Sat, Jul 6, 2019'},
+    {from:'me',text:'Can we film Sunday morning: Sunday afternoon???',time:'6:37 PM',date:'Fri, Jul 5, 2019'},
+    {from:'them',text:'Cheap @ any price',time:'12:00 PM',date:'Fri, Jul 5, 2019'},
+    {from:'me',text:'"backbone of England"',time:'11:57 AM',date:'Fri, Jul 5, 2019'},
+    {from:'them',text:'On It. Aaron Klein',time:'11:33 PM',date:'Wed, Jul 3, 2019'},
+    {from:'me',text:'Done. 6 30',time:'8:32 AM',date:'Wed, Jul 3, 2019'},
+    {from:'them',text:'Sunday New York?',time:'7:14 AM',date:'Wed, Jul 3, 2019'},
+  ]},
+  'larry-summers':{last:'07/05/19',preview:'I think you meant. Buddha',msgs:[
+    {from:'them',text:'I think you meant. Buddha',time:'9:00 AM',date:'Fri, Jul 5, 2019'},
+    {from:'me',text:'7:30-8 ET ok?',time:'8:45 AM',date:'Fri, Jul 5, 2019'},
+    {from:'them',text:'Yes, works for me',time:'8:30 AM',date:'Fri, Jul 5, 2019'},
+    {from:'me',text:'Let me confirm and get back to you',time:'8:00 AM',date:'Fri, Jul 5, 2019'},
+    {from:'them',text:'Sounds good',time:'7:55 AM',date:'Fri, Jul 5, 2019'},
+  ]},
+  'joi-ito':{last:'05/06/19',preview:'7:30-8 ET ok?',msgs:[
+    {from:'them',text:'7:30-8 ET ok?',time:'6:00 PM',date:'Mon, May 6, 2019'},
+    {from:'me',text:'Yes that works perfectly',time:'5:45 PM',date:'Mon, May 6, 2019'},
+    {from:'them',text:'Great. We can do it from the lab',time:'5:30 PM',date:'Mon, May 6, 2019'},
+    {from:'me',text:"Perfect. I'll dial in at 7:30 sharp",time:'5:15 PM',date:'Mon, May 6, 2019'},
+    {from:'them',text:'Looking forward to catching up',time:'5:00 PM',date:'Mon, May 6, 2019'},
+    {from:'me',text:"Same here. There's a lot to discuss",time:'4:45 PM',date:'Mon, May 6, 2019'},
+  ]},
+  'melanie-walker':{last:'02/13/19',preview:"This opportunity was sent to me - here's the actual...",msgs:[
+    {from:'them',text:"This opportunity was sent to me - here's the actual details of the program I mentioned",time:'1:00 PM',date:'Wed, Feb 13, 2019'},
+    {from:'me',text:'Thank you for sharing this',time:'12:45 PM',date:'Wed, Feb 13, 2019'},
+    {from:'them',text:'I think it could be very relevant to what we discussed',time:'12:30 PM',date:'Wed, Feb 13, 2019'},
+    {from:'me',text:"I'll review it carefully and get back to you",time:'12:15 PM',date:'Wed, Feb 13, 2019'},
+    {from:'them',text:'Of course. Science and philanthropy should intersect',time:'11:30 AM',date:'Wed, Feb 13, 2019'},
+  ]},
+  'anthony-scaramucci':{last:'08/24/18',preview:'and not sure he will actually follow any advice bu...',msgs:[
+    {from:'them',text:'and not sure he will actually follow any advice but worth a try',time:'4:00 PM',date:'Fri, Aug 24, 2018'},
+    {from:'me',text:'Who are we talking about exactly?',time:'3:45 PM',date:'Fri, Aug 24, 2018'},
+    {from:'them',text:'You know who. The usual suspect',time:'3:30 PM',date:'Fri, Aug 24, 2018'},
+    {from:'me',text:'Ahh. Good luck with that endeavor',time:'3:15 PM',date:'Fri, Aug 24, 2018'},
+    {from:'them',text:'I know right. But we have to try',time:'3:00 PM',date:'Fri, Aug 24, 2018'},
+    {from:'me',text:'Keep me posted. Curious to see how it plays out',time:'2:45 PM',date:'Fri, Aug 24, 2018'},
+  ]},
+  'miroslav-lajcak':{last:'11/29/18',preview:'My turn again in the barrel',msgs:[
+    {from:'them',text:'My turn again in the barrel',time:'5:00 PM',date:'Thu, Nov 29, 2018'},
+    {from:'me',text:"Ha. What's going on this time?",time:'4:45 PM',date:'Thu, Nov 29, 2018'},
+    {from:'them',text:'UN politics as usual',time:'4:30 PM',date:'Thu, Nov 29, 2018'},
+    {from:'me',text:'You handle it better than anyone',time:'4:15 PM',date:'Thu, Nov 29, 2018'},
+    {from:'them',text:'Appreciate the vote of confidence',time:'4:00 PM',date:'Thu, Nov 29, 2018'},
+    {from:'me',text:'Always. When are you back in New York?',time:'3:45 PM',date:'Thu, Nov 29, 2018'},
+    {from:'them',text:'Next week. Should we meet?',time:'3:30 PM',date:'Thu, Nov 29, 2018'},
+    {from:'me',text:'Absolutely. My calendar is open Thursday',time:'3:15 PM',date:'Thu, Nov 29, 2018'},
+  ]},
+  'michael-wolff':{last:'10/02/18',preview:'Just heard from senior producer @ 60 minutes...',msgs:[
+    {from:'them',text:'Just heard from senior producer @ 60 minutes (who I know well). They are very interested in doing a segment.',time:'2:00 PM',date:'Tue, Oct 2, 2018'},
+    {from:'me',text:'Interesting. What are the details?',time:'1:45 PM',date:'Tue, Oct 2, 2018'},
+    {from:'them',text:'They want a full interview. Prime time slot.',time:'1:30 PM',date:'Tue, Oct 2, 2018'},
+    {from:'me',text:"I'll need to think about it carefully",time:'1:15 PM',date:'Tue, Oct 2, 2018'},
+    {from:'them',text:'Take your time. I told them nothing is confirmed',time:'1:00 PM',date:'Tue, Oct 2, 2018'},
+  ]},
+  'eva-dubin':{last:'08/23/18',preview:"Don't like",msgs:[
+    {from:'them',text:"Don't like",time:'6:00 PM',date:'Thu, Aug 23, 2018'},
+    {from:'me',text:"Why not? What's the issue?",time:'5:45 PM',date:'Thu, Aug 23, 2018'},
+    {from:'them',text:"Just doesn't feel right",time:'5:30 PM',date:'Thu, Aug 23, 2018'},
+    {from:'me',text:'Fair enough. We can revisit',time:'5:15 PM',date:'Thu, Aug 23, 2018'},
+    {from:'them',text:'Thank you for understanding',time:'5:00 PM',date:'Thu, Aug 23, 2018'},
+  ]},
+  'terje-rod-larsen':{last:'06/16/18',preview:'Arrived well in London. Feeling Good...',msgs:[
+    {from:'them',text:'Arrived well in London. Feeling Good. Went with American Airlines in the end.',time:'10:00 AM',date:'Sat, Jun 16, 2018'},
+    {from:'me',text:'Glad to hear. How was the flight?',time:'9:45 AM',date:'Sat, Jun 16, 2018'},
+    {from:'them',text:'Long but comfortable. Good service',time:'9:30 AM',date:'Sat, Jun 16, 2018'},
+    {from:'me',text:'Enjoy London! Great city',time:'9:15 AM',date:'Sat, Jun 16, 2018'},
+    {from:'them',text:'Will do. Meeting starts at noon',time:'9:00 AM',date:'Sat, Jun 16, 2018'},
+    {from:'me',text:'Give my regards to the team',time:'8:45 AM',date:'Sat, Jun 16, 2018'},
+  ]},
+  'soon-yi-previn':{last:'03/14/18',preview:'Explain to me what?',msgs:[
+    {from:'them',text:'Explain to me what?',time:'7:00 PM',date:'Wed, Mar 14, 2018'},
+    {from:'me',text:"I'll explain when I see you",time:'6:45 PM',date:'Wed, Mar 14, 2018'},
+    {from:'them',text:'Ok. When?',time:'6:30 PM',date:'Wed, Mar 14, 2018'},
+    {from:'me',text:'Tomorrow evening if that works for you',time:'6:15 PM',date:'Wed, Mar 14, 2018'},
+    {from:'them',text:'That works',time:'6:00 PM',date:'Wed, Mar 14, 2018'},
+  ]},
+  'anil-ambani':{last:'01/26/18',preview:'Have fun',msgs:[
+    {from:'them',text:'Have fun',time:'3:00 PM',date:'Fri, Jan 26, 2018'},
+    {from:'me',text:'Thank you! Will do',time:'2:45 PM',date:'Fri, Jan 26, 2018'},
+    {from:'them',text:'Where are you headed?',time:'2:30 PM',date:'Fri, Jan 26, 2018'},
+    {from:'me',text:'The island for a few days',time:'2:15 PM',date:'Fri, Jan 26, 2018'},
+    {from:'them',text:'Perfect. Weather should be lovely',time:'2:00 PM',date:'Fri, Jan 26, 2018'},
+  ]},
+  'stacey-plaskett':{last:'02/27/19',preview:'Of course not',msgs:[
+    {from:'them',text:'Of course not',time:'3:00 PM',date:'Wed, Feb 27, 2019'},
+    {from:'me',text:'Are you sure? I just wanted to confirm',time:'2:45 PM',date:'Wed, Feb 27, 2019'},
+    {from:'them',text:'Yes, completely sure',time:'2:30 PM',date:'Wed, Feb 27, 2019'},
+    {from:'me',text:'Ok, understood. Thanks for clarifying',time:'2:15 PM',date:'Wed, Feb 27, 2019'},
+  ]},
+  'celina-dubin':{last:'03/31/19',preview:'Glad',msgs:[
+    {from:'them',text:'Glad',time:'11:30 AM',date:'Sun, Mar 31, 2019'},
+    {from:'me',text:'Hope everything went well',time:'11:15 AM',date:'Sun, Mar 31, 2019'},
+    {from:'them',text:'It did, thank you for asking',time:'11:00 AM',date:'Sun, Mar 31, 2019'},
+  ]},
+  'andrzej-duda':{last:'06/13/19',preview:"I'm the one to say thank you. Safe travels.",msgs:[
+    {from:'them',text:"I'm the one to say thank you. Safe travels.",time:'3:00 PM',date:'Thu, Jun 13, 2019'},
+    {from:'me',text:'Thank you so much for your hospitality.',time:'2:45 PM',date:'Thu, Jun 13, 2019'},
+    {from:'them',text:'The visit was truly memorable.',time:'2:30 PM',date:'Thu, Jun 13, 2019'},
+  ]},
+  'arda-beskardes':{last:'02/19/19',preview:'working on it. the quality of potential immigrants...',msgs:[
+    {from:'them',text:'working on it. the quality of potential immigrants has been a concern for the committee',time:'4:00 PM',date:'Tue, Feb 19, 2019'},
+    {from:'me',text:"What's the latest on the report?",time:'3:30 PM',date:'Tue, Feb 19, 2019'},
+    {from:'them',text:'We are compiling the data now',time:'3:00 PM',date:'Tue, Feb 19, 2019'},
+    {from:'me',text:'Please keep me posted',time:'2:45 PM',date:'Tue, Feb 19, 2019'},
+  ]},
+};
+
+let activeId=null;
+
+function avHtml(c,size=46){
+  const s=`width:${size}px;height:${size}px`;
+  if(c.avatar) return `<img class="av" src="${c.avatar}" style="${s}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt="${c.name}"/><div class="av-f" style="${s};background:${color(c.name)};display:none">${initials(c.name)}</div>`;
+  return `<div class="av-f" style="${s};background:${color(c.name)}">${initials(c.name)}</div>`;
+}
+
+function renderList(){
+  const q=document.getElementById('search').value.toLowerCase();
+  const filtered=contacts.filter(c=>c.name.toLowerCase().includes(q));
+  document.getElementById('list').innerHTML=filtered.map(c=>{
+    const cv=convos[c.id];
+    if(!cv)return'';
+    return`<div class="s-item${activeId===c.id?' active':''}" onclick="openChat('${c.id}')">
+      <div style="display:flex;flex-shrink:0">${avHtml(c)}</div>
+      <div class="s-info">
+        <div class="s-row"><span class="s-name">${c.name}</span><span class="s-date">${cv.last}</span></div>
+        <div class="s-prev">${cv.preview}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openChat(id){
+  activeId=id;
+  renderList();
+  const c=contacts.find(x=>x.id===id);
+  const cv=convos[id];
+  document.getElementById('empty').style.display='none';
+  const chat=document.getElementById('chat');
+  chat.style.display='flex';
+  chat.style.flexDirection='column';
+  chat.style.overflow='hidden';
+  chat.style.flex='1';
+
+  let lastDate='';
+  const msgs=cv.msgs.map(m=>{
+    let sep='';
+    if(m.date!==lastDate){lastDate=m.date;sep=`<div class="date-sep"><span>${m.date}</span></div>`;}
+    return`${sep}<div class="bubble ${m.from==='me'?'b-me':'b-them'}">${m.text}<div class="b-time">${m.time}${m.from==='me'?' ✓✓':''}</div></div>`;
+  }).join('');
+
+  chat.innerHTML=`
+    <div class="c-head">
+      <div style="display:flex;flex-shrink:0">${avHtml(c,40)}</div>
+      <div><div class="c-name">${c.name}</div><div class="c-role">${c.role}</div></div>
+    </div>
+    <div class="c-msgs" id="msgs">${msgs}</div>`;
+  const el=document.getElementById('msgs');
+  el.scrollTop=el.scrollHeight;
+
+  if(window.innerWidth<=700){
+    document.getElementById('sidebar').classList.add('hidden');
+  }
+}
+
+renderList();
+</script>
+</body>
+</html>
