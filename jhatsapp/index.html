@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JhatsApp</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f3ee;
+        --panel: #ffffff;
+        --ink: #1b1b1b;
+        --muted: #6a6a6a;
+        --accent: #2f5d62;
+        --border: #e5e0d8;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Georgia", "Palatino Linotype", "Book Antiqua", serif;
+        background: radial-gradient(circle at top, #fff8ef, var(--bg));
+        color: var(--ink);
+      }
+
+      .app {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 240px 1fr;
+      }
+
+      .sidebar {
+        padding: 18px 14px;
+        background: var(--panel);
+        border-right: 1px solid var(--border);
+      }
+
+      .brand {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        margin-bottom: 12px;
+      }
+
+      .search {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #faf7f3;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .list-empty {
+        margin-top: 18px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .main {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .empty {
+        max-width: 360px;
+        text-align: center;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 22px 18px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+      }
+
+      .empty h1 {
+        font-size: 18px;
+        margin: 0 0 8px;
+      }
+
+      .empty p {
+        margin: 0;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .tag {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        border: 1px dashed var(--accent);
+        color: var(--accent);
+        font-size: 11px;
+      }
+
+      @media (max-width: 720px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">JhatsApp</div>
+        <input class="search" type="text" placeholder="Search (disabled)" disabled />
+        <div class="list-empty">No conversations loaded.</div>
+      </aside>
+      <main class="main">
+        <section class="empty">
+          <h1>Single-file mode</h1>
+          <p>This page is now a self-contained index.html with no imports.</p>
+          <span class="tag">Static UI shell</span>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
