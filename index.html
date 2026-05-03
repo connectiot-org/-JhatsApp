@@ -163,6 +163,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg-grad);color:var(--t1);
     <div id="chat" style="display:none;flex:1;flex-direction:column;overflow:hidden"></div>
   </main>
 </div>
+<script src="./email-messages.js"></script>
 <script src="./elon-data.js"></script>
 <script>
 const COLORS=['#1a5276','#1e8449','#7b241c','#6c3483','#1a5276','#0e6655','#784212','#1f618d'];
@@ -1703,7 +1704,9 @@ function applyPeopleMessages(data){
   });
 }
 
-applyPeopleMessages(peopleMessages);
+if (window.__emailMessages) {
+  applyPeopleMessages(window.__emailMessages);
+}
 
 if (window.__elonData) {
   contacts.unshift(window.__elonData.contact);
